@@ -1,0 +1,218 @@
+﻿@model dynamic
+
+@{
+    ViewData["Title"] = "Home Page";
+    CurrentUserData user = Model.currentUserData as CurrentUserData;
+    List<CurrentUserData> usersInConversation = Model.usersInConversation as List<CurrentUserData>;
+}
+
+<script>let myID = @user.myID;</script>
+
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light box-shadow mb-3">
+        <div class="container">
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ChatMe</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Messages" asp-action="Index">Messages</a>
+                    </li>
+                    <li class="nav-item">
+                        <h4>Witaj @user.displayName!</h4>
+                    </li>
+
+
+                </ul>
+                <div class="input-group searchInputGroup">
+                    <input id="userSearchInput" type="text" class="form-control" placeholder="Wyszukaj osobę..." aria-label="Wyszukaj osobę..." aria-describedby="basic-addon2">
+                    <div class="input-group-append searchInputAppend">
+                        <button id="showSearch" class="btn" onclick="showSearch()" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+<div id="searchView">
+    <div id="searchViewContent">
+        <div id="closeSearchBar">
+            <button id="closeSearch" class="btn btn-outline-secondary" onclick="closeSearch()" type="button"><i class="fa-regular fa-circle-xmark"></i></button>
+        </div>
+
+        <div class="input-group mb-3 searchInputGroup">
+            <input id="userSearchInput" type="text" class="form-control" placeholder="Wyszukaj osobę..." aria-label="Wyszukaj osobę..." aria-describedby="basic-addon2">
+            <div class="input-group-append searchInputAppend">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+        </div>
+
+        <div class="searchListDropdown">
+            <ul id="searchList"></ul>
+        </div>
+    </div>
+</div>
+<div id="appWindow">
+    <div class="row appRow">
+        <div id="conversationWindow" class="col-3">
+            <ul id="chatsList">
+                <!-- TODO: Zmienić, że jak dzisiaj to godzina, jak nie to data -->
+                @foreach (FrontChatItem item in Model.listOfConversations)
+                {
+                    <a href="?conversation=@Html.DisplayFor(modelItem => item.chatID)">
+                    <li class="conversationItem">
+                        @if (item.readed)
+                        {
+                            <div class="avatar">
+                                <span>@Html.DisplayFor(modelItem => item.shortcut)</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="avatar unreadedAvatar">
+                                <span>@Html.DisplayFor(modelItem => item.shortcut)</span>
+                            </div>
+                        }
+                        <div class="conversationData">
+                            <div class="conversationName">@Html.DisplayFor(modelItem => item.chatName)</div>
+                            @if (item.readed)
+                            {
+                                <div class="conversationLastMessage">@Html.DisplayFor(modelItem => item.lastMessage)</div>
+                            }
+                            else
+                            {
+                                <div class="conversationLastMessage messageUnreaded">@Html.DisplayFor(modelItem => item.lastMessage)</div>
+                            }
+                            <div class="conversationTime">
+                                @Html.DisplayFor(modelItem => item.lastMessageTime)
+                            </div>
+                        </div>
+
+                    </li>
+                    </a>
+                }
+            </ul>
+        </div>
+        <div id="rightPane" class="col-9">
+            <div id="chatWindow">
+                <ul id="messagesList">
+                    @foreach (FrontMessage item in Model.listOfMessages)
+                    {
+
+                        @if (item.isMyMessage)
+                        {
+                            <li class="myLi">
+                                <div class="message-bubble my-message">
+                                    <span class="message-bubble-details">
+                                        <div class="message-bubble-avatar">
+                                            @Html.DisplayFor(modelItem => item.shortcut)
+                                        </div>
+                                        <div class="message-bubble-author">
+                                            @Html.DisplayFor(modelItem => item.creatorName) (@Html.DisplayFor(modelItem => item.username))
+                                        </div>
+                                        <div class="message-bubble-createdTime">
+                                            @Html.DisplayFor(modelItem => item.createdTime)
+                                        </div>
+                                    </span>
+                                    <div class="message-bubble-content">
+                                        @Html.DisplayFor(modelItem => item.messageContent)
+                                    </div>
+
+                                </div>
+                                @foreach (Readed readed in item.readedBy)
+                                {
+                                    <div class="message-bubble-readed myItem">
+                                        @Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).shortcut)
+                                        <span class="mymessage-bubble-readed-details">
+
+                                            <div class="message-bubble-avatar">
+                                                @Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).shortcut)
+                                            </div>
+                                            <div class="message-bubble-author">
+                                                @Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).displayName) (@Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).username))
+                                            </div>
+                                            <div class="message-bubble-readedTime">
+                                                readed<br />
+                                                @Html.DisplayFor(item => readed.readTime)
+                                            </div>
+                                        </span>
+                                    </div>
+                                }
+
+
+
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="someoneLi">
+                                <div class="message-bubble">
+                                    <span class="message-bubble-details">
+                                        <div class="message-bubble-avatar">
+                                            @Html.DisplayFor(modelItem => item.shortcut)
+                                        </div>
+                                        <div class="message-bubble-author">
+                                            @Html.DisplayFor(modelItem => item.creatorName) (@Html.DisplayFor(modelItem => item.username))
+                                        </div>
+                                        <div class="message-bubble-createdTime">
+                                            @Html.DisplayFor(modelItem => item.createdTime)
+                                        </div>
+                                    </span>
+
+                                    <div class="message-bubble-content">
+                                        @Html.DisplayFor(modelItem => item.messageContent)
+                                    </div>
+
+                                </div>
+                                @foreach (Readed readed in item.readedBy)
+                                {
+                                    <div class="message-bubble-readed someoneItem">
+                                        @Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).shortcut)
+                                        <span class="message-bubble-readed-details">
+                                            <div class="message-bubble-avatar">
+                                                @Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).shortcut)
+                                            </div>
+                                            <div class="message-bubble-author">
+                                                @Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).displayName) (@Html.DisplayFor(item => usersInConversation.FirstOrDefault(usr => usr.myID == readed.userID).username))
+                                            </div>
+                                            <div class="message-bubble-readedTime">
+                                                readed<br />
+                                                @Html.DisplayFor(item => readed.readTime)
+                                            </div>
+                                            <span />
+                                    </div>
+                                }
+                            </li>
+                        }
+
+
+
+                    }
+                </ul>
+
+            </div>
+            <div id="messageInputBar" class="messageInputBar">
+                <div class="input-group messageInputGroup">
+                        <input id="messageInput" type="text" class="form-control" placeholder="Napisz wiadomość..." aria-label="Napisz wiadomość..." aria-describedby="basic-addon2">
+                    <div class="input-group-append messageInputAppend">
+                        <button id="sendButton" class="btn btn-outline-secondary" type="button"><i class="fa-regular fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/chat.js"></script>
